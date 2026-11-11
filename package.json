@@ -1,0 +1,63 @@
+{
+  "name": "@elido/mcp-server",
+  "version": "0.1.0",
+  "description": "Model Context Protocol server for Elido — exposes link, QR, and analytics tools to MCP-aware clients.",
+  "license": "MIT",
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "bin": {
+    "elido-mcp-server": "./dist/index.js"
+  },
+  "exports": {
+    ".": {
+      "import": "./dist/index.js",
+      "types": "./dist/index.d.ts"
+    },
+    "./tools": {
+      "import": "./dist/tools.js",
+      "types": "./dist/tools.d.ts"
+    }
+  },
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE",
+    "server.json"
+  ],
+  "scripts": {
+    "build": "tsc -p tsconfig.json && chmod +x dist/index.js",
+    "typecheck": "tsc --noEmit -p tsconfig.json",
+    "test": "tsx --test src/tools.test.ts",
+    "prepublishOnly": "npm run build"
+  },
+  "dependencies": {},
+  "devDependencies": {
+    "@types/node": "^22.10.2",
+    "tsx": "^4.19.2",
+    "typescript": "^5.7.2"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "keywords": [
+    "elido",
+    "mcp",
+    "model-context-protocol",
+    "url-shortener",
+    "ai-tools"
+  ],
+  "homepage": "https://elido.app/ai/mcp",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/elidoapp/mcp-server.git"
+  },
+  "bugs": {
+    "url": "https://github.com/elidoapp/mcp-server/issues"
+  },
+  "author": "Elido <engineering@elido.app>",
+  "mcpName": "io.github.elidoapp/mcp-server"
+}

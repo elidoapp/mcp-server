@@ -1,0 +1,38 @@
+{
+  "$schema": "https://static.modelcontextprotocol.io/schemas/2025-07-09/server.schema.json",
+  "name": "io.github.elidoapp/mcp-server",
+  "description": "Model Context Protocol server for Elido — exposes link, QR, and analytics tools to MCP-aware clients.",
+  "version": "0.1.0",
+  "repository": {
+    "url": "https://github.com/elidoapp/mcp-server",
+    "source": "github"
+  },
+  "packages": [
+    {
+      "registry_type": "npm",
+      "identifier": "@elido/mcp-server",
+      "version": "0.1.0",
+      "transport": {
+        "type": "stdio"
+      },
+      "environment_variables": [
+        {
+          "name": "ELIDO_API_KEY",
+          "description": "Elido API key (starts with elido_)",
+          "is_required": true,
+          "is_secret": true
+        },
+        {
+          "name": "ELIDO_WORKSPACE_ID",
+          "description": "Numeric workspace id (optional)",
+          "is_required": false
+        },
+        {
+          "name": "ELIDO_API_BASE",
+          "description": "API base URL (default https://api.elido.app)",
+          "is_required": false
+        }
+      ]
+    }
+  ]
+}
