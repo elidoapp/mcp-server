@@ -172,13 +172,25 @@ export async function dispatchTool(
     }
 
     case "generate_qr": {
+      // There is no workspace-scoped QR route: read the link's short_url,
+      // then render it with the public QR generator (same as the hosted
+      // /mcp endpoint in api-core).
       const wsID = await client.workspaceID();
-      const body = {
-        link_id: args.link_id,
-        format: args.format ?? "svg",
+      const link = (await client.call(
+        "GET",
+        `/v1/workspaces/${wsID}/links/${args.link_id}`,
+      )) as { short_url?: string };
+      if (!link?.short_url) {
+        throw new Error(`link ${String(args.link_id)} has no short_url`);
+      }
+      const format = (args.format as string | undefined) ?? "svg";
+      const qr = await client.call("POST", "/v1/qr/generate", {
+        content: link.short_url,
         size: args.size ?? 512,
-      };
-      return client.call("POST", `/v1/workspaces/${wsID}/qr`, body);
+        error_correction: "M",
+        formats: [format],
+      });
+      return { short_url: link.short_url, format, qr };
     }
 
     default:

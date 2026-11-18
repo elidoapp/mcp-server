@@ -1,6 +1,6 @@
 {
   "name": "@elido/mcp-server",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Model Context Protocol server for Elido — exposes link, QR, and analytics tools to MCP-aware clients.",
   "license": "MIT",
   "type": "module",

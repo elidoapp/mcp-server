@@ -3,7 +3,9 @@
 // each tool calls the right path with the right body shape.
 
 import { strict as assert } from "node:assert";
+import { existsSync, readFileSync } from "node:fs";
 import { describe, it } from "node:test";
+import { fileURLToPath } from "node:url";
 
 import { dispatchTool, listTools, type ApiClient } from "./tools.js";
 
@@ -52,6 +54,28 @@ describe("listTools", () => {
     for (const t of listTools()) {
       assert.equal(t.inputSchema.type, "object", `${t.name} schema type`);
     }
+  });
+
+  // The hosted endpoint (api-core POST /mcp) serves its tool list from
+  // services/api-core/internal/mcpserver/tools.json. Both servers must
+  // expose identical names, descriptions and input schemas. Skipped in the
+  // standalone GitHub mirror, where the monorepo file is absent.
+  it("matches the hosted endpoint's tools.json", (t) => {
+    const hosted = fileURLToPath(
+      new URL(
+        "../../../services/api-core/internal/mcpserver/tools.json",
+        import.meta.url,
+      ),
+    );
+    if (!existsSync(hosted)) {
+      t.skip("monorepo-only check");
+      return;
+    }
+    const remote = JSON.parse(readFileSync(hosted, "utf8")) as unknown;
+    assert.deepEqual(
+      remote,
+      JSON.parse(JSON.stringify(listTools())) as unknown,
+    );
   });
 });
 
@@ -118,13 +142,20 @@ describe("dispatchTool", () => {
     assert.match(calls[0]!.path, /interval=day/);
   });
 
-  it("generate_qr posts to the workspace-scoped /qr", async () => {
+  it("generate_qr reads the link and renders its short_url", async () => {
     const { client, calls } = stub({
-      "POST /v1/workspaces/7/qr": { url: "https://x" },
+      "GET /v1/workspaces/7/links/5": { short_url: "https://s.elido.me/abc" },
+      "POST /v1/qr/generate": { svg: "<svg/>" },
     });
     await dispatchTool(client, "generate_qr", { link_id: 5 });
-    assert.equal(calls[0]?.path, "/v1/workspaces/7/qr");
-    assert.deepEqual(calls[0]?.body, { link_id: 5, format: "svg", size: 512 });
+    assert.equal(calls[0]?.path, "/v1/workspaces/7/links/5");
+    assert.equal(calls[1]?.path, "/v1/qr/generate");
+    assert.deepEqual(calls[1]?.body, {
+      content: "https://s.elido.me/abc",
+      size: 512,
+      error_correction: "M",
+      formats: ["svg"],
+    });
   });
 
   it("rejects unknown tool names", async () => {

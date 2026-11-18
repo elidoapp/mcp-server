@@ -18,7 +18,9 @@
  *      explaining how to set it.
  */
 
+import { realpathSync } from "node:fs";
 import { createInterface } from "node:readline";
+import { pathToFileURL } from "node:url";
 
 import { dispatchTool, type ApiClient, listTools } from "./tools.js";
 
@@ -65,7 +67,7 @@ function buildClient(): ApiClient {
       headers: {
         "Content-Type": "application/json",
         Authorization: `Bearer ${API_KEY}`,
-        "User-Agent": "elido-mcp-server/0.1.0",
+        "User-Agent": "elido-mcp-server/0.1.1",
       },
       body: body == null ? undefined : JSON.stringify(body),
     });
@@ -77,6 +79,20 @@ function buildClient(): ApiClient {
       parsed = { raw: text };
     }
     if (!res.ok) {
+      const code =
+        parsed && typeof parsed === "object" && "code" in parsed
+          ? (parsed as { code?: unknown }).code
+          : undefined;
+      if (
+        res.status === 403 &&
+        (code === "email_not_verified" ||
+          code === "workspace_owner_email_not_verified")
+      ) {
+        throw new Error(
+          "Confirm the workspace owner's email at app.elido.app (https://app.elido.app/verify). " +
+            "Writes are blocked until an owner of the workspace has verified their email.",
+        );
+      }
       throw new Error(
         `api ${method} ${path} -> ${res.status}: ${text.slice(0, 400)}`,
       );
@@ -122,7 +138,7 @@ async function handle(
           result: {
             protocolVersion: "2024-11-05",
             capabilities: { tools: {} },
-            serverInfo: { name: "elido", version: "0.1.0" },
+            serverInfo: { name: "elido", version: "0.1.1" },
           },
         };
       case "tools/list":
@@ -188,8 +204,20 @@ function main(): void {
   });
 }
 
-// Run only when invoked as the entrypoint (vs imported by tests).
-if (import.meta.url === `file://${process.argv[1]}`) {
+// Run only when invoked as the entrypoint (vs imported by tests). npx and
+// global installs start us through a node_modules/.bin symlink, so compare
+// against the resolved real path, not argv[1] as given.
+function isEntrypoint(): boolean {
+  const argv1 = process.argv[1];
+  if (!argv1) return false;
+  try {
+    return import.meta.url === pathToFileURL(realpathSync(argv1)).href;
+  } catch {
+    return false;
+  }
+}
+
+if (isEntrypoint()) {
   main();
 }
 

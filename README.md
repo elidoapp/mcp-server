@@ -1,5 +1,7 @@
 # @elido/mcp-server
 
+[![Listed on mcpservers.org](https://mcpservers.org/badge.svg)](https://mcpservers.org/servers/elidoapp/mcp-server)
+
 Model Context Protocol server for Elido. Exposes link, QR, and analytics
 tools to any MCP-aware client (Claude Desktop, Cursor, Continue.dev,
 Claude Code, custom agents).
@@ -28,6 +30,12 @@ or `%APPDATA%\Claude\claude_desktop_config.json` (Windows):
 }
 ```
 
+**Claude Code:**
+
+```bash
+claude mcp add elido -e ELIDO_API_KEY=elido_… -- npx -y @elido/mcp-server
+```
+
 For Cursor, drop the same `mcpServers` block into `.cursor/mcp.json`
 inside your project. Restart the client and Elido tools appear in the
 agent's tool list.
@@ -36,7 +44,7 @@ agent's tool list.
 
 | Variable             | Required? | Description                                                                                                                              |
 | -------------------- | --------- | ---------------------------------------------------------------------------------------------------------------------------------------- |
-| `ELIDO_API_KEY`      | yes       | API key (`elido_…`) from Settings → API Keys. Sent as `Authorization: Bearer …`.                                                         |
+| `ELIDO_API_KEY`      | yes       | API key (`elido_…`) from the dashboard at <https://app.elido.app> (API keys section). Sent as `Authorization: Bearer …`.                 |
 | `ELIDO_WORKSPACE_ID` | optional  | Numeric workspace id. When omitted, the server picks the only workspace the key sees. Set this when the key has access to more than one. |
 | `ELIDO_API_BASE`     | optional  | Override the API host. Default `https://api.elido.app`. Useful for self-host.                                                            |
 
@@ -56,8 +64,16 @@ clock instead of cluster-UTC.
 
 ## Transport
 
-`stdio` by default — the canonical MCP wire format. SSE transport is on
-the roadmap.
+`stdio` — the canonical local MCP wire format.
+
+A hosted version with the same five tools and input schemas runs at
+`https://api.elido.app/mcp` (Streamable HTTP, `Authorization: Bearer elido_…`),
+so HTTP-capable clients need no local install:
+
+```bash
+claude mcp add --transport http elido https://api.elido.app/mcp \
+  --header "Authorization: Bearer elido_…"
+```
 
 ## Build / develop
 
@@ -72,9 +88,7 @@ echo '{"jsonrpc":"2.0","id":1,"method":"tools/list"}' \
 ## Source
 
 Issues and PRs welcome at <https://github.com/elidoapp/mcp-server>.
-Releases are published to npm with
-[provenance](https://docs.npmjs.com/generating-provenance-statements) so the
-artifact is verifiable against the commit it was built from.
+Releases are published to npm as `@elido/mcp-server`.
 
 ## Links
 
